@@ -1,0 +1,10 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  go-app:
+    desc: Run the golang app
+    cmds: 
+      - docker compose build
+      - docker compose up
