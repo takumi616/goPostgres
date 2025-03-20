@@ -3,8 +3,32 @@
 version: '3'
 
 tasks:
-  go-app:
+  # 環境全体を起動するタスク
+  up:
+    desc: Start the entire environment (Postgres, migration, and app)
+    cmds:
+      - task: start-postgres
+      - task: run-migration
+      - task: start-app
+
+  # Postgresサービスを起動するタスク
+  start-postgres:
+    desc: Start the Postgres service
+    cmds:
+      - docker compose up -d postgres
+
+  # DBマイグレーションを実行するタスク
+  run-migration:
+    desc: Run database migrations inside the Postgres container
+    deps: [start-postgres]
+    cmds:
+      # Postgresが起動するのを待つ
+      - docker compose exec postgres sh -c "until pg_isready; do sleep 1; done"
+      # マイグレーション実行（マイグレーションファイルはホストの ./migrations からマウント）
+      # - migrate -path /migrations -database 'postgres://user:password@localhost:5432/mydb?sslmode=disable' up
+      - migrate -path migrations -database "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" up
+
+  start-app:
     desc: Run the golang app
     cmds: 
-      - docker compose build
-      - docker compose up
+      - docker compose up app
